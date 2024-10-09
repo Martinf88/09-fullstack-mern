@@ -1,0 +1,9 @@
+.animal-facts__wrapper {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1rem;
+}
+
+.animal-facts__card {
+	border: 1px solid black;
+}
