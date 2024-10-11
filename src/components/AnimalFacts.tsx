@@ -13,11 +13,13 @@ function AnimalFacts() {
 	}
 	
 	return (
-		<section className="container animal-facts__section">
-			<button onClick={handleGetAll}>fetch from API</button>
-			<div className="animal-facts__wrapper">
+		<section className="bg-green-300 text-white font-semibold px-4">
+			<div className="flex justify-center py-4">
+				<button className="bg-red-400 text-white px-4 py-2 rounded font-semibold" onClick={handleGetAll}>fetch from API</button>
+			</div>
+			<div className="grid gap-4 grid-cols-2">
 				{facts.map(fact => (
-					<div className="animal-facts__card" key={fact._id}>
+					<div className="border-2 border-black rounded p-3 text-center" key={fact._id}>
 						<strong><h2><span> {fact.score} </span>{fact.species}</h2></strong>
 						<p className="animal-facts__description">
 							{fact.factoid}
