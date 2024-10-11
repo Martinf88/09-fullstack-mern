@@ -27,19 +27,14 @@ async function getFacts(): Promise<WithId<AnimalFact>[]> {
 }
 
 async function addNewFact(newFact: AnimalFact): Promise<InsertOneResult<AnimalFact>> {
-	const [ col, client ] = await connectToDatabase()
+	const [col, client]: [Collection<AnimalFact>, MongoClient] = await connectToDatabase();
 
-	try {
-		const result: InsertOneResult<AnimalFact> = await col.insertOne(newFact)
+    // Insert the new animal fact into the collection
+    const result: InsertOneResult<AnimalFact> = await col.insertOne(newFact);
 
-		await client.close()
-	
-		return result
+    await client.close(); // Close the database connection
 
-	}catch(error) {
-		console.error('Error adding new fact');
-		throw new Error("Could not add new fact");
-	}
+    return result; 	
 
 }
 

@@ -20,22 +20,24 @@ router.get('/', async (_, res: Response) => {
 })
 
 router.post('/', async (req: Request, res: Response) => {
-    const validationResult = isValidFact(req.body);
+    const newFact: AnimalFact = req.body; // Get the new fact from the request body
 
+    // Validate the new fact
+    const validationResult = isValidFact(newFact);
     if (!validationResult.success) {
-        return res.status(400).json({ error: validationResult.error }); // Handle validation error
+        res.status(400).send(validationResult.error);
+        return;
     }
-
-    const newFact: AnimalFact = validationResult.value; // Extract validated value
 
     try {
-        await addNewFact(newFact); // Await the async operation
-        return res.sendStatus(201); // Send a 201 Created status
+        const result = await addNewFact(newFact); // Call the function to add the new fact
+        res.status(201).json({ message: 'New fact added successfully', id: result.insertedId }); // Respond with success
     } catch (error) {
-        console.error('Error adding item:', error);
-        return res.sendStatus(500); // Send a 500 Internal Server Error status
+        console.error('Error adding new fact:', error);
+        res.status(500).send("An error occurred while adding the new fact"); // Handle errors
     }
 });
+
 
 router.put('/:id', async (req: Request, res: Response) => {
 	const id: string = req.params.id;
@@ -74,5 +76,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 	  res.status(500).send("An error occurred while updating the fact");
 	}
   });
+
+
 
 export { router }
