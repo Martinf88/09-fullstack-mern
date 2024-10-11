@@ -1,46 +1,32 @@
-
+import Joi from 'joi'
 import { AnimalFact } from "../models/AnimalFact";
 
-type ValidationResult = ValidationSuccess | ValidationFailure
+type ValidationResult =
+  | { success: false; error: string; value?: undefined }
+  | { success: true; value: AnimalFact; error?: undefined };
 
-interface ValidationSuccess {
-	success: true;
-	value: AnimalFact;
-}
-
-interface ValidationFailure {
-	success: false;
-	error: string;
-}
+const factSchema: Joi.ObjectSchema<AnimalFact> = Joi.object<AnimalFact>({
+	species: Joi.string().required(),
+	factoid: Joi.string().required(),
+	score: Joi.number().integer().greater(0).required().strict()
+})
 
 
 
 function isValidFact(fact: AnimalFact): ValidationResult {
+    const { error, value } = factSchema.validate(fact); // Validate the input against the schema
 
-	if(!fact.species || typeof fact.species !== 'string' || fact.species.trim() === '') {
-		return {
-			success: false,
-			error: "Species is invalid or missing"
-		}
-	}
-	if(typeof fact.score !== 'number' || fact.score < 0) {
-		return {
-			success: false,
-			error: 'Score must be a non-negative number'
-		}
-	}
-	if (!fact.factoid || typeof fact.factoid !== 'string' || fact.factoid.trim() === "") {
-		return {
-			success: false,
-			error: "Fact text is invalid or missing"
-		};
-	}
+    if (error) {
+        return {
+            success: false,
+            error: error.message // Return the error message from Joi
+        };
+    }
 
-	return {
-		success: true,
-		value: fact
-	};
-
+    return {
+        success: true,
+        value: value || fact
+    };
 }
 
 

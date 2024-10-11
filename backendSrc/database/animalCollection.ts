@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection, WithId, UpdateResult, ObjectId } from "mongodb";
+import { MongoClient, Db, Collection, WithId, UpdateResult, ObjectId, InsertOneResult } from "mongodb";
 import { AnimalFact } from "../models/AnimalFact";
 
 const con: string | undefined = process.env.CONNECTION_STRING
@@ -20,8 +20,27 @@ async function getFacts(): Promise<WithId<AnimalFact>[]> {
 	const [col, client]: [Collection<AnimalFact>, MongoClient] = await connectToDatabase()
 
 	const result: WithId<AnimalFact>[] = await col.find({}).toArray()
+
 	await client.close()
+
 	return result
+}
+
+async function addNewFact(newFact: AnimalFact): Promise<InsertOneResult<AnimalFact>> {
+	const [ col, client ] = await connectToDatabase()
+
+	try {
+		const result: InsertOneResult<AnimalFact> = await col.insertOne(newFact)
+
+		await client.close()
+	
+		return result
+
+	}catch(error) {
+		console.error('Error adding new fact');
+		throw new Error("Could not add new fact");
+	}
+
 }
 
 async function updateFact(id: string, updatedFact: AnimalFact) {
@@ -33,4 +52,4 @@ async function updateFact(id: string, updatedFact: AnimalFact) {
 	return result
 }
 
-export { getFacts, updateFact }
+export { getFacts, updateFact, addNewFact }

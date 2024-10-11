@@ -1,18 +1,41 @@
 import express, { Router, Response, Request } from 'express'
-import { getFacts, updateFact } from '../database/animalCollection.js'
+import { addNewFact, getFacts, updateFact } from '../database/animalCollection.js'
 import { ObjectId, WithId } from 'mongodb'
 import { AnimalFact } from '../models/AnimalFact.js'
 import isValidFact from '../validation/isValidFact.js'
+
 
 const router: Router = express.Router()
 
 
 // Använd "_" som variabelnamn om en parameter inte används
 router.get('/', async (_, res: Response) => {
-	const facts: WithId<AnimalFact>[] = await getFacts()
-	// Om ett Error kastas kommer Express fånga det och svara med statuskod 500
-	res.send(facts)
+	try {
+        const facts: WithId<AnimalFact>[] = await getFacts();
+        res.send(facts);
+    } catch (error) {
+        console.error('Error retrieving facts:', error);
+        res.sendStatus(500); // Handle any potential errors
+    }
 })
+
+router.post('/', async (req: Request, res: Response) => {
+    const validationResult = isValidFact(req.body);
+
+    if (!validationResult.success) {
+        return res.status(400).json({ error: validationResult.error }); // Handle validation error
+    }
+
+    const newFact: AnimalFact = validationResult.value; // Extract validated value
+
+    try {
+        await addNewFact(newFact); // Await the async operation
+        return res.sendStatus(201); // Send a 201 Created status
+    } catch (error) {
+        console.error('Error adding item:', error);
+        return res.sendStatus(500); // Send a 500 Internal Server Error status
+    }
+});
 
 router.put('/:id', async (req: Request, res: Response) => {
 	const id: string = req.params.id;
@@ -42,8 +65,10 @@ router.put('/:id', async (req: Request, res: Response) => {
 		res.status(404).send("No fact found with the given ID");
 		return;
 	  }
+
+	  const updatedFact = { ...fact, _id: id };
   
-	  res.sendStatus(204);  // Framgång, men ingen data returneras
+	  res.status(200).json(updatedFact);  // Framgång, men ingen data returneras
 	} catch (error) {
 	  console.error("Error updating fact:", error);
 	  res.status(500).send("An error occurred while updating the fact");
